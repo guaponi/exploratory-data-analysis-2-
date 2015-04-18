@@ -303,10 +303,59 @@ p
 # 5
 #How have emissions from motor vehicle sources changed from 1999–2008 in Baltimore City?
 ind <- grep(pattern = "motor vehicle", x = SCC[,3][[1]], ignore.case = TRUE)
+Baltimore_moto_scc <- Baltimore[Baltimore$SCC %in% SCC[ind,1][[1]],]
+
+total_moto_pm_emissions_per_year <- with(Baltimore_moto_scc, tapply(Emissions, factor(year), sum))
+temp <- total_moto_pm_emissions_per_year
+
+df4 <- as.data.frame(temp)
+#df4 <- tbl_df(df4)
+df4_tbl <- df4 %>%
+  mutate(year = row.names(df4)) %>%
+  select(year, total_pm_emissions = temp) %>%
+  tbl_df
+
+# total_pm_emissions_per_year %>%
+#   mutate(year = as.Date(as.character(year)))
+plot(df4)
+
+names(total_pm_emissions_per_year) <- c("year", "total_pm_emissions")
+
+# unique(SCC$EI.Sector)
+#  DF[SCC %in% your_scc_vector , ]
 
 # Compare emissions from motor vehicle sources in Baltimore City 
 # with emissions from motor vehicle sources in Los Angeles County, 
 # California (fips == "06037"). 
 # Which city has seen greater changes over time in motor vehicle emissions?
+
+Baltimore_LA <- filter(NEI, fips=="24510" | fips=="06037")
+Baltimore_LA <- tbl_df(Baltimore_LA)
+ind <- grep(pattern = "motor vehicle", x = SCC[,3][[1]], ignore.case = TRUE)
+BaltimoreLA_moto_scc <- Baltimore_LA[Baltimore_LA$SCC %in% SCC[ind,1][[1]],]
+
+# Add city column
+
+#total_moto_pm_emissions_per_year <- with(BaltimoreLA_moto_scc, tapply(Emissions, factor(year), sum))
+total_moto_pm_emissions_per_year <- with(BaltimoreLA_moto_scc, tapply(Emissions, interaction(year, fips), sum))
+
+temp <- total_moto_pm_emissions_per_year
+
+
+df5 <- as.data.frame(temp)
+#df4 <- tbl_df(df4)
+df5_tbl <- df5 %>%
+  mutate(year = row.names(df5)) %>%
+  select(year, total_pm_emissions = temp) %>%
+  tbl_df
+
+library("tidyr", lib.loc="~/R/win-library/3.1")
+df5_tbl <- df5_tbl %>%
+  separate(year, into = c("year", "city"), sep = "\\.") 
+
+with(df5_tbl,plot(year, total_pm_emissions, col=city, type="l"))
+
+
+
 
 
